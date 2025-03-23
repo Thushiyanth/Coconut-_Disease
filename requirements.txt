@@ -1,0 +1,6 @@
+streamlit
+google-generativeai
+tensorflow
+numpy
+pillow
+gdown
