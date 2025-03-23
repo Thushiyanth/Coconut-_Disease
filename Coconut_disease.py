@@ -5,6 +5,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
+import gdown
 
 MODEL_PATH = "inceptionv3_fine_tuned_model.keras"
 MODEL_URL = "https://drive.google.com/file/d/1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9/view?usp=sharing"  # Replace with your file ID
