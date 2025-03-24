@@ -8,7 +8,7 @@ from PIL import Image
 import gdown
 
 MODEL_ID = "1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9"
-MODEL_URL = f"https://drive.google.com/uc?id={1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9}"
+MODEL_URL = f"https://drive.google.com/uc?id={MODEL_ID}"
   # Replace with your file ID
 
 @st.cache_resource
