@@ -7,8 +7,9 @@ from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
 import gdown
 
-MODEL_PATH = "inceptionv3_fine_tuned_model.keras"
-MODEL_URL = "https://drive.google.com/file/d/1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9/view?usp=sharing"  # Replace with your file ID
+MODEL_ID = "1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9"
+MODEL_URL = f"https://drive.google.com/uc?id={1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9}"
+  # Replace with your file ID
 
 @st.cache_resource
 def load_model():
