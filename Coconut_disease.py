@@ -7,22 +7,31 @@ from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
 import gdown
 
+MODEL_PATH = "inceptionv3_fine_tuned_model.keras"
 MODEL_ID = "1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9"
 MODEL_URL = f"https://drive.google.com/uc?id={MODEL_ID}"
-  # Replace with your file ID
 
-@st.cache_resource
-def load_model():
+# Function to download the model if it doesn't exist
+def download_model():
     if not os.path.exists(MODEL_PATH):
         st.write("Downloading model from Google Drive...")
         gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)
 
+@st.cache_resource  # Ensures model is loaded only once
+def load_model():
+    download_model()  # Ensure the model is downloaded
+    if not os.path.exists(MODEL_PATH):
+        st.error("Model file not found after download.")
+        return None
     try:
-        return tf.keras.models.load_model(MODEL_PATH)
+        model = tf.keras.models.load_model(MODEL_PATH)
+        st.write("Model loaded successfully!")
+        return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
         return None
 
+# Load the model
 model = load_model()
 
 # Securely load Gemini AI API key from environment variable
