@@ -15,7 +15,7 @@ MODEL_URL = f"https://drive.google.com/uc?id={MODEL_ID}"
 def load_model():
     if not os.path.exists(MODEL_PATH):
         st.write("Downloading model from Google Drive...")
-        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+        gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)
 
     try:
         return tf.keras.models.load_model(MODEL_PATH)
