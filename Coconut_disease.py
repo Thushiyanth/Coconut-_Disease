@@ -13,7 +13,7 @@ st.title("🌴 Coconut Disease Diagnosis Chatbot 🤖")
 st.write("Upload an image of a coconut tree and chat with our AI to diagnose diseases.")
 
 # Google Gemini API Key
-genai.configure(api_key="YOUR_GEMINI_API_KEY")  # Replace with your actual API key
+genai.configure(api_key="AIzaSyA3VYu_hAB4T0QtUGbSJ2KTW7gIA1od1G8")
 
 # ------------------ MODEL LOADING ------------------
 MODEL_PATH = "inceptionv3_fine_tuned_model.keras"
