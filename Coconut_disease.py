@@ -108,28 +108,28 @@ if uploaded_file:
 
 # Gemini AI Chat Function
 def ask_gemini(user_input):
-    history = st.session_state.get("messages", [])
-    
-    # Add a system instruction at the beginning of the chat
-    system_prompt = {
-        "role": "system",
-        "parts": [{
-            "text": (
-                "You are a helpful assistant that only answers questions related to coconut diseases, "
-                "their symptoms, causes, remedies, and anything relevant to coconut farming. "
-                "If the user asks something unrelated to coconuts or coconut farming, respond with: "
-                "'I'm sorry, I can only help with coconut-related queries.'"
-            )
-        }]
-    }
-    
-    formatted_history = [system_prompt] + [
-        {"role": msg["role"], "parts": [{"text": msg["content"]}]} for msg in history
+    # Initialize chat with system instruction
+    model = genai.GenerativeModel(
+        "gemini-1.5-pro",
+        system_instruction=(
+            "You are a helpful assistant that only answers questions related to coconut diseases, "
+            "their symptoms, causes, remedies, and anything relevant to coconut farming. "
+            "If the user asks something unrelated to coconuts or coconut farming, respond with: "
+            "'I'm sorry, I can only help with coconut-related queries.'"
+        )
+    )
+
+    # Convert Streamlit chat history to Gemini chat format
+    history = [
+        {"role": msg["role"], "parts": [msg["content"]]}
+        for msg in st.session_state.get("messages", [])
     ]
-    
-    chat = genai.GenerativeModel("gemini-1.5-pro").start_chat(history=formatted_history)
+
+    chat = model.start_chat(history=history)
     response = chat.send_message(user_input)
+
     return response.text
+
 
 
 # User Input for Chatbot
