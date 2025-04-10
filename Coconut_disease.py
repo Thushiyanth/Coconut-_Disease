@@ -7,37 +7,29 @@ from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
 import gdown
 
+# ------------------ CONFIG & SETUP ------------------
+st.set_page_config(page_title="🌴 Coconut Disease Diagnosis Bot", layout="centered")
+st.title("🌴 Coconut Disease Diagnosis Chatbot 🤖")
+st.write("Upload an image of a coconut tree and chat with our AI to diagnose diseases.")
+
+# Google Gemini API Key
+genai.configure(api_key="YOUR_GEMINI_API_KEY")  # Replace with your actual API key
+
+# ------------------ MODEL LOADING ------------------
 MODEL_PATH = "inceptionv3_fine_tuned_model.keras"
 MODEL_ID = "1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9"
 MODEL_URL = f"https://drive.google.com/uc?id={MODEL_ID}"
 
-# Function to download the model if it doesn't exist
-def download_model():
-    if not os.path.exists(MODEL_PATH):
-        st.write("Downloading model from Google Drive...")
-        gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)
-
-@st.cache_resource  # Ensures model is loaded only once
+@st.cache_resource
 def load_model():
-    download_model()  # Ensure the model is downloaded
     if not os.path.exists(MODEL_PATH):
-        st.error("Model file not found after download.")
-        return None
-    try:
-        model = tf.keras.models.load_model(MODEL_PATH)
-        st.write("Model loaded successfully!")
-        return model
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None
+        st.info("Downloading model from Google Drive...")
+        gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)
+    return tf.keras.models.load_model(MODEL_PATH)
 
-# Load the model
 model = load_model()
 
-# Securely load Gemini AI API key from environment variable
-genai.configure(api_key="AIzaSyA3VYu_hAB4T0QtUGbSJ2KTW7gIA1od1G8")
-
-# Define disease classes and remedies
+# ------------------ DISEASE INFO ------------------
 disease_info = {
     "BudRootDropping": {
         "cause": "Caused by fungal infection due to excess moisture.",
@@ -57,69 +49,56 @@ disease_info = {
     }
 }
 
-# Disease prediction function
+# ------------------ PREDICTION FUNCTION ------------------
 def predict_disease(image):
-    if model is None:
-        return "Error: Model not loaded", 0.0
-    
     img = image.resize((299, 299))
     img_array = img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
-    
+
     prediction = model.predict(img_array)
     predicted_class = np.argmax(prediction, axis=1)[0]
     confidence = np.max(prediction)
-    
+
     if predicted_class >= len(disease_info):
         return "Unknown Disease", confidence
 
     return list(disease_info.keys())[predicted_class], confidence
 
-# Streamlit UI
-st.title("🌴 Coconut Disease Diagnosis Chatbot 🤖")
-st.write("Upload an image of a coconut tree and chat with our AI to diagnose diseases.")
-
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hello, farmer! Upload an image to check for diseases."}]
-
-# Display chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# File uploader UI
-col1, col2 = st.columns([2, 1])
-with col1:
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
-
+# ------------------ IMAGE UPLOAD SECTION ------------------
+uploaded_file = st.file_uploader("📤 Upload Image", type=["jpg", "jpeg", "png"])
 if uploaded_file:
     image = Image.open(uploaded_file)
-    with col2:
-        st.image(image, caption="Uploaded Image", use_column_width=True)
-    
-    if st.button("Analyze"):
+    st.image(image, caption="🖼 Uploaded Image", use_container_width=True)
+
+    if st.button("🔍 Analyze Disease"):
         label, confidence = predict_disease(image)
-        response = f"The image is predicted as *{label}* with *{confidence:.2f} confidence.*"
-        
+        response = f"✅ Predicted disease: *{label}* \n\n🎯 Confidence: *{confidence:.2f}*"
+        if label in disease_info:
+            response += f"\n\n🧪 *Cause:* {disease_info[label]['cause']}\n💊 *Remedy:* {disease_info[label]['remedy']}"
+
         st.session_state.messages.append({"role": "assistant", "content": response})
         with st.chat_message("assistant"):
             st.markdown(response)
 
-# Gemini AI Chat Function
+# ------------------ CHAT HISTORY ------------------
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "assistant", "content": "Hello, farmer! Upload an image and ask about coconut diseases!"}]
+
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# ------------------ GEMINI AI FUNCTION ------------------
 def ask_gemini(user_input):
-    # Initialize chat with system instruction
     model = genai.GenerativeModel(
         "gemini-1.5-pro",
         system_instruction=(
             "You are a helpful assistant that only answers questions related to coconut diseases, "
-            "their symptoms, causes, remedies, and anything relevant to coconut farming. "
-            "If the user asks something unrelated to coconuts or coconut farming, respond with: "
-            "'I'm sorry, I can only help with coconut-related queries.'"
+            "their symptoms, causes, remedies, and coconut farming. "
+            "If asked anything else, reply with: 'I'm sorry, I can only help with coconut-related queries.'"
         )
     )
 
-    # Convert Streamlit chat history to Gemini chat format
     history = [
         {"role": msg["role"], "parts": [msg["content"]]}
         for msg in st.session_state.get("messages", [])
@@ -127,22 +106,24 @@ def ask_gemini(user_input):
 
     chat = model.start_chat(history=history)
     response = chat.send_message(user_input)
-
     return response.text
 
-
-
-# User Input for Chatbot
-if user_input := st.chat_input("Ask about the disease, symptoms, or remedies..."):
+# ------------------ USER INPUT ------------------
+if user_input := st.chat_input("Ask about coconut diseases or remedies..."):
     st.session_state.messages.append({"role": "user", "content": user_input})
-    
-    if any(disease in user_input for disease in disease_info):
-        disease = next(d for d in disease_info if d in user_input)
-        response = f"{disease}\n\n*Cause:* {disease_info[disease]['cause']}\n\n*Remedy:* {disease_info[disease]['remedy']}"
+
+    # Check if user's query is about a known disease
+    matched_disease = next((d for d in disease_info if d.lower() in user_input.lower()), None)
+
+    if matched_disease:
+        response = (
+            f"🦠 *{matched_disease}*\n\n"
+            f"🧪 *Cause:* {disease_info[matched_disease]['cause']}\n"
+            f"💊 *Remedy:* {disease_info[matched_disease]['remedy']}"
+        )
     else:
         response = ask_gemini(user_input)
-    
+
     with st.chat_message("assistant"):
         st.markdown(response)
-    
     st.session_state.messages.append({"role": "assistant", "content": response})
