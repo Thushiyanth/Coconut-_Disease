@@ -93,10 +93,7 @@ def ask_gemini(user_input):
     model = genai.GenerativeModel(
         "gemini-1.5-pro",
         system_instruction=(
-                "You are a helpful assistant that only answers questions related to coconut diseases, "
-                "their symptoms, causes, remedies, and coconut farming. "
-                "If asked anything else, reply with: 'I'm sorry, I can only help with coconut-related queries.' "
-                "You must understand Tamil queries and respond in Tamil language."
+                "You are a helpful assistant that only answers questions related to coconut diseases, their symptoms, causes, remedies, and coconut farming. If asked anything else, reply with: 'I'm sorry, I can only help with coconut-related queries. You must understand Tamil queries and respond in Tamil language. If the user expect a reply in the tamil language give the reply in tamil. Also, if the user input is in tamil unserstand it and reply in tamil."
         )
     )
 
