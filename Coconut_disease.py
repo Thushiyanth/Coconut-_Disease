@@ -96,7 +96,7 @@ def ask_gemini(user_input):
                 "You are a helpful assistant that only answers questions related to coconut diseases, "
                 "their symptoms, causes, remedies, and coconut farming. "
                 "If asked anything else, reply with: 'I'm sorry, I can only help with coconut-related queries.' "
-                "You must understand Tamil queries and respond in Tamil language.
+                "You must understand Tamil queries and respond in Tamil language."
         )
     )
 
