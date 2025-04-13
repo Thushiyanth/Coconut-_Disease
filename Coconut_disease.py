@@ -81,28 +81,37 @@ def predict_disease(image, model):
 # ------------------ IMAGE UPLOAD SECTION ------------------
 uploaded_file = st.file_uploader("📤 Upload Image", type=["jpg", "jpeg", "png"])
 
-if uploaded_file:
+if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption="🖼 Uploaded Image", use_container_width=True)
+    st.image(image, caption="🖼 Uploaded Image", use_column_width=True)
 
-    image_type = st.radio(
-        "Select the type of image / பட வகையைத் தேர்ந்தெடுக்கவும்:",
-        ("🌴 Tree / மரம்", "🍃 Leaf / இலை"),
-        index=0
-    )
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🌴 Analyze Tree Image"):
+            label, confidence = predict_disease(image, tree_model)
+            response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
 
-    selected_model = tree_model if "Tree" in image_type else leaf_model
+            if label in disease_info:
+                response += (
+                    f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
+                    f"\n💊 **Remedy:** {disease_info[label]['remedy']}"
+                )
+            st.success(response)
 
-    if st.button("🔍 Analyze Disease"):
-        label, confidence = predict_disease(image, selected_model)
-        response = f"✅ Predicted disease: *{label}*\n\n🎯 Confidence: *{confidence:.2f}*"
-        if label in disease_info:
-            response += f"\n\n🧪 *Cause:* {disease_info[label]['cause']}\n💊 *Remedy:* {disease_info[label]['remedy']}"
+    with col2:
+        if st.button("🍃 Analyze Leaf Image"):
+            label, confidence = predict_disease(image, leaf_model)
+            response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
 
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        with st.chat_message("assistant"):
-            st.markdown(response)
-
+            if label in disease_info:
+                response += (
+                    f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
+                    f"\n💊 **Remedy:** {disease_info[label]['remedy']}"
+                )
+            st.success(response)
+else:
+    st.info("📸 Hello, farmer! Upload an image and select whether it's a tree or leaf for diagnosis.")
 # ------------------ CHAT HISTORY ------------------
 if "messages" not in st.session_state:
     st.session_state.messages = [{
