@@ -26,14 +26,13 @@ TREE_MODEL_URL = f"https://drive.google.com/uc?id={TREE_MODEL_ID}"
 LEAF_MODEL_URL = f"https://drive.google.com/uc?id={LEAF_MODEL_ID}"
 
 # ------------------ MODEL LOADING ------------------
-@st.cache_resource
+
 def load_tree_model():
     if not os.path.exists(TREE_MODEL_PATH):
         st.info("Downloading tree model from Google Drive...")
         gdown.download(TREE_MODEL_URL, TREE_MODEL_PATH, quiet=False, fuzzy=True)
     return tf.keras.models.load_model(TREE_MODEL_PATH)
 
-@st.cache_resource
 def load_leaf_model():
     if not os.path.exists(LEAF_MODEL_PATH):
         st.info("Downloading leaf model from Google Drive...")
@@ -116,9 +115,11 @@ if uploaded_file is not None:
     
     with col1:
         if st.button("🌴 Analyze Tree Image"):
-            label, confidence = predict_disease(image, tree_model)
+            if "tree_model" not in st.session_state:
+                st.session_state.tree_model = load_tree_model()
+            label, confidence = predict_disease(image, st.session_state.tree_model)
             response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
-
+    
             if label in disease_info:
                 response += (
                     f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
@@ -130,7 +131,9 @@ if uploaded_file is not None:
 
     with col2:
         if st.button("🍃 Analyze Leaf Image"):
-            label, confidence = predict_disease(image, leaf_model)
+            if "leaf_model" not in st.session_state:
+                st.session_state.leaf_model = load_leaf_model()
+            label, confidence = predict_disease(image, st.session_state.leaf_model)
             response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
     
             if label in leaf_disease_info:
