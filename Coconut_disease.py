@@ -20,7 +20,7 @@ TREE_MODEL_PATH = "tree_model.keras"
 LEAF_MODEL_PATH = "leaf_model.keras"
 
 TREE_MODEL_ID = "1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9"  # Replace with your tree model ID
-LEAF_MODEL_ID = "1gUT8FKVCisPaFRl8efdavLmPzNx5fXLU"  # Replace with your leaf model ID
+LEAF_MODEL_ID = "1qZljo_V7fVhsR2aNIZBedtbebODtN3s6"  # Replace with your leaf model ID
 
 TREE_MODEL_URL = f"https://drive.google.com/uc?id={TREE_MODEL_ID}"
 LEAF_MODEL_URL = f"https://drive.google.com/uc?id={LEAF_MODEL_ID}"
@@ -63,6 +63,33 @@ disease_info = {
     }
 }
 
+leaf_disease_info = {
+    "CCI_Caterpillars": {
+        "cause": "Caused by caterpillar infestation feeding on the leaves.",
+        "remedy": "Apply biological insecticides or neem-based sprays."
+    },
+    "CCI_Leaflets": {
+        "cause": "Caused by nutritional deficiency or physical damage to leaflets.",
+        "remedy": "Provide balanced nutrients and proper care."
+    },
+    "Healthy_Leaves": {
+        "cause": "No disease detected. The leaves appear healthy.",
+        "remedy": "Continue regular maintenance and monitoring."
+    },
+    "WCLWD_DryingofLeaflets": {
+        "cause": "A symptom of root wilt disease leading to drying of leaflets.",
+        "remedy": "Apply adequate fertilizers and organic matter to improve root health."
+    },
+    "WCLWD_Flaccidity": {
+        "cause": "Caused by vascular disorder affecting water transport in the plant.",
+        "remedy": "Improve irrigation practices and apply recommended nutrients."
+    },
+    "WCLWD_Yellowing": {
+        "cause": "Initial stage of root wilt or nutritional deficiency.",
+        "remedy": "Use magnesium and potassium-based fertilizers as prescribed."
+    }
+}
+
 # ------------------ PREDICTION FUNCTION ------------------
 def predict_disease(image, model):
     img = image.resize((299, 299))
@@ -88,28 +115,33 @@ if uploaded_file is not None:
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("🌴 Analyze Tree Image"):
-            label, confidence = predict_disease(image, tree_model)
-            response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
+    if st.button("🌴 Analyze Tree Image"):
+        label, confidence = predict_disease(image, tree_model)
+        response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
 
-            if label in disease_info:
-                response += (
-                    f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
-                    f"\n💊 **Remedy:** {disease_info[label]['remedy']}"
-                )
-            st.success(response)
+        if label in disease_info:
+            response += (
+                f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
+                f"\n💊 **Remedy:** {disease_info[label]['remedy']}"
+            )
+        else:
+            response += "\n\n⚠️ No additional information available for this disease."
+        st.success(response)
 
     with col2:
-        if st.button("🍃 Analyze Leaf Image"):
-            label, confidence = predict_disease(image, leaf_model)
-            response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
+    if st.button("🍃 Analyze Leaf Image"):
+        label, confidence = predict_disease(image, leaf_model)
+        response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
 
-            if label in disease_info:
-                response += (
-                    f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
-                    f"\n💊 **Remedy:** {disease_info[label]['remedy']}"
-                )
-            st.success(response)
+        if label in leaf_disease_info:
+            response += (
+                f"\n\n🧪 **Cause:** {leaf_disease_info[label]['cause']}"
+                f"\n💊 **Remedy:** {leaf_disease_info[label]['remedy']}"
+            )
+        else:
+            response += "\n\n⚠️ No additional information available for this disease."
+        st.success(response)
+
 else:
     st.info("📸 Hello, farmer! Upload an image and select whether it's a tree or leaf for diagnosis.")
 # ------------------ CHAT HISTORY ------------------
