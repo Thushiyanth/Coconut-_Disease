@@ -115,32 +115,32 @@ if uploaded_file is not None:
     col1, col2 = st.columns(2)
     
     with col1:
-    if st.button("🌴 Analyze Tree Image"):
-        label, confidence = predict_disease(image, tree_model)
-        response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
+        if st.button("🌴 Analyze Tree Image"):
+            label, confidence = predict_disease(image, tree_model)
+            response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
 
-        if label in disease_info:
-            response += (
-                f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
-                f"\n💊 **Remedy:** {disease_info[label]['remedy']}"
-            )
-        else:
-            response += "\n\n⚠️ No additional information available for this disease."
-        st.success(response)
+            if label in disease_info:
+                response += (
+                    f"\n\n🧪 **Cause:** {disease_info[label]['cause']}"
+                    f"\n💊 **Remedy:** {disease_info[label]['remedy']}"
+                )
+            else:
+                response += "\n\n⚠️ No additional information available for this disease."
+            st.success(response)
 
     with col2:
-    if st.button("🍃 Analyze Leaf Image"):
-        label, confidence = predict_disease(image, leaf_model)
-        response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
-
-        if label in leaf_disease_info:
-            response += (
-                f"\n\n🧪 **Cause:** {leaf_disease_info[label]['cause']}"
-                f"\n💊 **Remedy:** {leaf_disease_info[label]['remedy']}"
-            )
-        else:
-            response += "\n\n⚠️ No additional information available for this disease."
-        st.success(response)
+        if st.button("🍃 Analyze Leaf Image"):
+            label, confidence = predict_disease(image, leaf_model)
+            response = f"✅ **Predicted disease:** *{label}*\n\n🎯 **Confidence:** *{confidence:.2f}*"
+    
+            if label in leaf_disease_info:
+                response += (
+                    f"\n\n🧪 **Cause:** {leaf_disease_info[label]['cause']}"
+                    f"\n💊 **Remedy:** {leaf_disease_info[label]['remedy']}"
+                )
+            else:
+                response += "\n\n⚠️ No additional information available for this disease."
+            st.success(response)
 
 else:
     st.info("📸 Hello, farmer! Upload an image and select whether it's a tree or leaf for diagnosis.")
