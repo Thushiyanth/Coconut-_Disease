@@ -31,13 +31,14 @@ def load_tree_model():
     if not os.path.exists(TREE_MODEL_PATH):
         st.info("Downloading tree model from Google Drive...")
         gdown.download(TREE_MODEL_URL, TREE_MODEL_PATH, quiet=False, fuzzy=True)
-    return tf.keras.models.load_model(TREE_MODEL_PATH)
+    return tf.keras.models.load_model(TREE_MODEL_PATH, compile=False)
 
 def load_leaf_model():
     if not os.path.exists(LEAF_MODEL_PATH):
         st.info("Downloading leaf model from Google Drive...")
         gdown.download(LEAF_MODEL_URL, LEAF_MODEL_PATH, quiet=False, fuzzy=True)
-    return tf.keras.models.load_model(LEAF_MODEL_PATH)
+    return tf.keras.models.load_model(LEAF_MODEL_PATH, compile=False)
+
 
 tree_model = load_tree_model()
 leaf_model = load_leaf_model()
