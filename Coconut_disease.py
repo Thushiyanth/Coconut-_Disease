@@ -7,27 +7,41 @@ from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
 import gdown
 
-# ------------------ CONFIG & SETUP ------------------
+# ------------------ PAGE CONFIG ------------------
 st.set_page_config(page_title="🌴 Coconut Disease Diagnosis Bot", layout="centered")
 st.title("🌴 Coconut Disease Diagnosis Chatbot 🤖")
-st.write("Upload an image of a coconut tree and chat with our AI to diagnose diseases.")
+st.write("Upload an image of a coconut tree or leaf and chat with our AI to diagnose diseases.")
 
-# Google Gemini API Key
-genai.configure(api_key="AIzaSyA3VYu_hAB4T0QtUGbSJ2KTW7gIA1od1G8")
+# ------------------ GEMINI API KEY ------------------
+genai.configure(api_key="AIzaSyA3VYu_hAB4T0QtUGbSJ2KTW7gIA1od1G8")  # Replace with your actual API Key
+
+# ------------------ MODEL FILE SETUP ------------------
+TREE_MODEL_PATH = "tree_model.keras"
+LEAF_MODEL_PATH = "leaf_model.keras"
+
+TREE_MODEL_ID = "1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9"  # Replace with your tree model ID
+LEAF_MODEL_ID = "1gUT8FKVCisPaFRl8efdavLmPzNx5fXLU"  # Replace with your leaf model ID
+
+TREE_MODEL_URL = f"https://drive.google.com/uc?id={TREE_MODEL_ID}"
+LEAF_MODEL_URL = f"https://drive.google.com/uc?id={LEAF_MODEL_ID}"
 
 # ------------------ MODEL LOADING ------------------
-MODEL_PATH = "inceptionv3_fine_tuned_model.keras"
-MODEL_ID = "1Qse74IbkhvuMCVytroGzvpT-9E6DuEU9"
-MODEL_URL = f"https://drive.google.com/uc?id={MODEL_ID}"
+@st.cache_resource
+def load_tree_model():
+    if not os.path.exists(TREE_MODEL_PATH):
+        st.info("Downloading tree model from Google Drive...")
+        gdown.download(TREE_MODEL_URL, TREE_MODEL_PATH, quiet=False, fuzzy=True)
+    return tf.keras.models.load_model(TREE_MODEL_PATH)
 
 @st.cache_resource
-def load_model():
-    if not os.path.exists(MODEL_PATH):
-        st.info("Downloading model from Google Drive...")
-        gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)
-    return tf.keras.models.load_model(MODEL_PATH)
+def load_leaf_model():
+    if not os.path.exists(LEAF_MODEL_PATH):
+        st.info("Downloading leaf model from Google Drive...")
+        gdown.download(LEAF_MODEL_URL, LEAF_MODEL_PATH, quiet=False, fuzzy=True)
+    return tf.keras.models.load_model(LEAF_MODEL_PATH)
 
-model = load_model()
+tree_model = load_tree_model()
+leaf_model = load_leaf_model()
 
 # ------------------ DISEASE INFO ------------------
 disease_info = {
@@ -50,7 +64,7 @@ disease_info = {
 }
 
 # ------------------ PREDICTION FUNCTION ------------------
-def predict_disease(image):
+def predict_disease(image, model):
     img = image.resize((299, 299))
     img_array = img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
@@ -66,13 +80,21 @@ def predict_disease(image):
 
 # ------------------ IMAGE UPLOAD SECTION ------------------
 uploaded_file = st.file_uploader("📤 Upload Image", type=["jpg", "jpeg", "png"])
+
 if uploaded_file:
     image = Image.open(uploaded_file)
     st.image(image, caption="🖼 Uploaded Image", use_container_width=True)
 
+    image_type = st.radio(
+        "Please choose the type of image / பட வகையைத் தேர்ந்தெடுக்கவும்:",
+        ("🌴 Tree / மரம்", "🍃 Leaf / இலை")
+    )
+
+    selected_model = tree_model if "Tree" in image_type else leaf_model
+
     if st.button("🔍 Analyze Disease"):
-        label, confidence = predict_disease(image)
-        response = f"✅ Predicted disease: *{label}* \n\n🎯 Confidence: *{confidence:.2f}*"
+        label, confidence = predict_disease(image, selected_model)
+        response = f"✅ Predicted disease: *{label}*\n\n🎯 Confidence: *{confidence:.2f}*"
         if label in disease_info:
             response += f"\n\n🧪 *Cause:* {disease_info[label]['cause']}\n💊 *Remedy:* {disease_info[label]['remedy']}"
 
@@ -82,20 +104,28 @@ if uploaded_file:
 
 # ------------------ CHAT HISTORY ------------------
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hello, farmer! Upload an image and ask about coconut diseases!"}]
+    st.session_state.messages = [{
+        "role": "assistant",
+        "content": "Hello, farmer! Upload an image and ask about coconut diseases!"
+    }]
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# ------------------ GEMINI AI FUNCTION ------------------
+# ------------------ GEMINI AI CHATBOT ------------------
 def ask_gemini(user_input):
     model = genai.GenerativeModel(
         "gemini-1.5-pro",
         system_instruction=(
-            "You are a helpful assistant that only answers questions related to coconut diseases, their symptoms, causes, remedies, and coconut farming. If asked anything else, reply with: 'I'm sorry, I can only help with coconut-related queries. You must understand Tamil queries and respond in Tamil language. If the user expect a reply in the tamil language give the reply in tamil. Also, if the user input is in tamil unserstand it and reply in tamil."
+            "You are a helpful assistant that only answers questions related to coconut diseases, "
+            "their symptoms, causes, remedies, and coconut farming. If asked anything else, reply with: "
+            "'I'm sorry, I can only help with coconut-related queries.' "
+            "You must understand Tamil queries and respond in Tamil language. If the user expects a reply in Tamil, "
+            "give the reply in Tamil. Also, if the user input is in Tamil, understand it and reply in Tamil."
+        )
     )
-    )
+
     history = [
         {"role": msg["role"], "parts": [msg["content"]]}
         for msg in st.session_state.get("messages", [])
@@ -105,11 +135,10 @@ def ask_gemini(user_input):
     response = chat.send_message(user_input)
     return response.text
 
-# ------------------ USER INPUT ------------------
+# ------------------ USER TEXT CHAT INPUT ------------------
 if user_input := st.chat_input("Ask about coconut diseases or remedies..."):
     st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # Check if user's query is about a known disease
     matched_disease = next((d for d in disease_info if d.lower() in user_input.lower()), None)
 
     if matched_disease:
