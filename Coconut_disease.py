@@ -86,8 +86,9 @@ if uploaded_file:
     st.image(image, caption="🖼 Uploaded Image", use_container_width=True)
 
     image_type = st.radio(
-        "Please choose the type of image / பட வகையைத் தேர்ந்தெடுக்கவும்:",
-        ("🌴 Tree / மரம்", "🍃 Leaf / இலை")
+        "Select the type of image / பட வகையைத் தேர்ந்தெடுக்கவும்:",
+        ("🌴 Tree / மரம்", "🍃 Leaf / இலை"),
+        index=0
     )
 
     selected_model = tree_model if "Tree" in image_type else leaf_model
